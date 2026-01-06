@@ -1,0 +1,70 @@
+
+services:
+  backend:
+    build:
+      context: ./meraki
+      dockerfile: Dockerfile
+    command: ["sh", "-c", "yarn medusa db:migrate && yarn seed && yarn start"]
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "9000:9000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-db?sslmode=disable
+      - PGSSLMODE=disable
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+      - JWT_SECRET=supersecret
+      - COOKIE_SECRET=supersecret
+      - STORE_CORS=http://localhost:8000
+      - ADMIN_CORS=http://localhost:9000
+      - AUTH_CORS=http://localhost:8000,http://localhost:9000
+      - MEDUSA_ADMIN_ONBOARDING_TYPE=nextjs
+    volumes:
+      - ./meraki:/app/meraki
+      - /app/meraki/node_modules
+      - /app/meraki/.yarn
+
+  storefront:
+    build:
+      context: ./meraki-storefront
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://backend:9000
+        MEDUSA_BACKEND_URL: http://backend:9000
+        NEXT_PUBLIC_BASE_URL: http://localhost:8000
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: pk_7bdb4ca32f78091d898037899a23e610366efc10868a984d9e51581e35d30cad
+    depends_on:
+      - backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Server-side communication (container to container)
+      - MEDUSA_BACKEND_URL=http://backend:9000
+      - NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
+      - NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_7bdb4ca32f78091d898037899a23e610366efc10868a984d9e51581e35d30cad
+    volumes:
+      - ./meraki-storefront:/app/meraki-storefront
+      - /app/meraki-storefront/node_modules
+      - /app/meraki-storefront/.next
+
+  postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=medusa-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:

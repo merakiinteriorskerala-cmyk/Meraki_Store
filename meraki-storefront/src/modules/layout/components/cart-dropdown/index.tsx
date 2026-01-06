@@ -1,0 +1,262 @@
+"use client"
+
+import {
+  Popover,
+  PopoverButton,
+  PopoverPanel,
+  Transition,
+} from "@headlessui/react"
+import { convertToLocale } from "@lib/util/money"
+import { HttpTypes } from "@medusajs/types"
+import { Button } from "@medusajs/ui"
+import DeleteButton from "@modules/common/components/delete-button"
+import LineItemOptions from "@modules/common/components/line-item-options"
+import LineItemPrice from "@modules/common/components/line-item-price"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import Thumbnail from "@modules/products/components/thumbnail"
+import { usePathname } from "next/navigation"
+import { Fragment, useEffect, useRef, useState } from "react"
+
+const CartDropdown = ({
+  cart: cartState,
+}: {
+  cart?: HttpTypes.StoreCart | null
+}) => {
+  const [activeTimer, setActiveTimer] = useState<NodeJS.Timer | undefined>(
+    undefined
+  )
+  const [cartDropdownOpen, setCartDropdownOpen] = useState(false)
+
+  const open = () => setCartDropdownOpen(true)
+  const close = () => setCartDropdownOpen(false)
+
+  const totalItems =
+    cartState?.items?.reduce((acc, item) => {
+      return acc + item.quantity
+    }, 0) || 0
+
+  const subtotal = cartState?.subtotal ?? 0
+  const itemRef = useRef<number>(totalItems || 0)
+
+  const timedOpen = () => {
+    open()
+
+    const timer = setTimeout(close, 5000)
+
+    setActiveTimer(timer)
+  }
+
+  const openAndCancel = () => {
+    if (activeTimer) {
+      clearTimeout(activeTimer)
+    }
+
+    open()
+  }
+
+  // Clean up the timer when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (activeTimer) {
+        clearTimeout(activeTimer)
+      }
+    }
+  }, [activeTimer])
+
+  const pathname = usePathname()
+
+  // open cart dropdown when modifying the cart items, but only if we're not on the cart page
+  useEffect(() => {
+    if (itemRef.current !== totalItems && !pathname.includes("/cart")) {
+      timedOpen()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalItems, itemRef.current])
+
+  return (
+    <div
+      className="h-full z-50"
+      onMouseEnter={openAndCancel}
+      onMouseLeave={close}
+    >
+      <Popover className="relative h-full">
+        <PopoverButton className="h-full focus:outline-none">
+          <LocalizedClientLink
+            className="group h-10 px-4 inline-flex items-center gap-2 rounded-full hover:bg-ui-bg-subtle hover:text-ui-fg-base transition-all duration-200"
+            href="/cart"
+            data-testid="nav-cart-link"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-ui-fg-subtle group-hover:text-ui-fg-base transition-colors"
+            >
+              <circle cx="8" cy="21" r="1" />
+              <circle cx="19" cy="21" r="1" />
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+            </svg>
+            <span className="font-medium text-ui-fg-subtle group-hover:text-ui-fg-base">Cart</span>
+            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white shadow-sm">
+              {totalItems}
+            </span>
+          </LocalizedClientLink>
+        </PopoverButton>
+        <Transition
+          show={cartDropdownOpen}
+          as={Fragment}
+          enter="transition ease-out duration-200"
+          enterFrom="opacity-0 translate-y-1"
+          enterTo="opacity-100 translate-y-0"
+          leave="transition ease-in duration-150"
+          leaveFrom="opacity-100 translate-y-0"
+          leaveTo="opacity-0 translate-y-1"
+        >
+          <PopoverPanel
+            static
+            className="hidden small:block absolute top-[calc(100%+8px)] right-0 bg-white/95 backdrop-blur-md border border-neutral-100 w-[440px] text-neutral-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden z-50 ring-1 ring-black/5"
+            data-testid="nav-cart-dropdown"
+          >
+            <div className="p-5 border-b border-neutral-100 flex items-center justify-between bg-white/50">
+              <h3 className="text-lg font-serif font-medium tracking-tight">Shopping Bag</h3>
+              <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full">{totalItems} items</span>
+            </div>
+            {cartState && cartState.items?.length ? (
+              <>
+                <div className="overflow-y-auto max-h-[420px] p-5 grid grid-cols-1 gap-y-6 no-scrollbar">
+                  {cartState.items
+                    .sort((a, b) => {
+                      return (a.created_at ?? "") > (b.created_at ?? "")
+                        ? -1
+                        : 1
+                    })
+                    .map((item) => (
+                      <div
+                        className="flex gap-x-4 group"
+                        key={item.id}
+                        data-testid="cart-item"
+                      >
+                        <LocalizedClientLink
+                          href={`/products/${item.product_handle}`}
+                          className="relative w-20 aspect-[3/4] rounded-lg overflow-hidden flex-shrink-0 border border-neutral-100"
+                        >
+                          <Thumbnail
+                            thumbnail={item.thumbnail}
+                            images={item.variant?.product?.images}
+                            size="full"
+                            className="h-full w-full object-cover"
+                          />
+                        </LocalizedClientLink>
+                        <div className="flex flex-col justify-between flex-1 py-1">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-start justify-between gap-2">
+                                <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">
+                                  <LocalizedClientLink
+                                    href={`/products/${item.product_handle}`}
+                                    data-testid="product-link"
+                                    className="hover:text-neutral-600 transition-colors"
+                                  >
+                                    {item.title}
+                                  </LocalizedClientLink>
+                                </h3>
+                                <div className="text-sm font-semibold text-neutral-900">
+                                  <LineItemPrice
+                                    item={item}
+                                    style="tight"
+                                    currencyCode={cartState.currency_code}
+                                  />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-neutral-500">
+                                <LineItemOptions
+                                  variant={item.variant}
+                                  data-testid="cart-item-variant"
+                                  data-value={item.variant}
+                                />
+                                <span className="w-px h-3 bg-neutral-300 mx-1" />
+                                <span
+                                  data-testid="cart-item-quantity"
+                                  data-value={item.quantity}
+                                >
+                                  Qty: {item.quantity}
+                                </span>
+                            </div>
+                          </div>
+                          <div className="flex justify-start">
+                            <DeleteButton
+                                id={item.id}
+                                className="text-xs text-neutral-400 hover:text-red-600 transition-colors flex items-center gap-1 mt-2"
+                                data-testid="cart-item-remove-button"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                Remove
+                            </DeleteButton>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+                <div className="p-5 bg-neutral-50/50 border-t border-neutral-100 flex flex-col gap-y-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-600">
+                      Subtotal{" "}
+                      <span className="text-neutral-400 text-xs">(excl. taxes)</span>
+                    </span>
+                    <span
+                      className="text-lg font-serif font-medium text-neutral-900"
+                      data-testid="cart-subtotal"
+                      data-value={subtotal}
+                    >
+                      {convertToLocale({
+                        amount: subtotal,
+                        currency_code: cartState.currency_code,
+                      })}
+                    </span>
+                  </div>
+                  <LocalizedClientLink href="/cart" passHref>
+                    <Button
+                      className="w-full bg-neutral-900 text-white hover:bg-neutral-800 rounded-full h-11 text-sm font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+                      size="large"
+                      data-testid="go-to-cart-button"
+                    >
+                      Proceed to Checkout
+                    </Button>
+                  </LocalizedClientLink>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="flex py-20 flex-col gap-y-6 items-center justify-center text-center px-8">
+                  <div className="bg-neutral-50 p-6 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-300">
+                        <circle cx="8" cy="21" r="1" />
+                        <circle cx="19" cy="21" r="1" />
+                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                      </svg>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                      <span className="text-neutral-900 font-medium text-lg font-serif">Your bag is empty</span>
+                      <span className="text-neutral-500 text-sm">Looks like you haven't added anything yet.</span>
+                  </div>
+                  <div>
+                    <LocalizedClientLink href="/store">
+                      <Button onClick={close} className="rounded-full px-6 bg-white border border-neutral-200 text-neutral-900 hover:bg-neutral-50 shadow-sm hover:shadow-md transition-all">Start Shopping</Button>
+                    </LocalizedClientLink>
+                  </div>
+                </div>
+              </div>
+            )}
+          </PopoverPanel>
+        </Transition>
+      </Popover>
+    </div>
+  )
+}
+
+export default CartDropdown

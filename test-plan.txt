@@ -1,0 +1,249 @@
+# Test Plan — Meraki Ecommerce (Medusa v2 + Next.js Storefront)
+
+## 1) Scope
+
+### In Scope
+- Backend API (Medusa): carts, checkout, payment sessions, order completion, customer auth, admin/store custom routes.
+- Storefront (Next.js): core UI flows (browse → cart → checkout → order confirmation), account flows (login/register/orders), critical UI components.
+- Integrations: payment provider(s), shipping options, webhooks, caching behavior.
+- Non-functional: performance, availability under load, security for customer data + payments.
+
+### Out of Scope (Unless Added Later)
+- Medusa Admin UI testing (treat as third-party unless customized heavily).
+- Third-party payment UIs’ internal behavior (test via sandbox + webhook outcomes only).
+
+## 2) Quality Gates (Release Criteria)
+
+- Unit tests: pass; coverage thresholds met (see below).
+- Integration tests: pass; API contract-critical paths covered.
+- Regression suite: pass on every PR; full regression pass on main before release.
+- E2E (headless): all critical flows pass in CI.
+- Performance: meets p95 latency + error-rate targets for expected load.
+- Security: no Critical/High findings open; secrets scanning clean; payment/webhook handling validated.
+
+## 3) Test Pyramid (Guiding Principle)
+
+- Many unit tests (fast, isolated).
+- Fewer integration tests (API + DB + module boundaries).
+- Small number of E2E tests (critical flows only).
+- Scheduled performance/security suites (nightly and pre-release).
+
+## 4) Environments & Test Data
+
+### Environments
+- Local dev: Docker Compose (backend + storefront + postgres + redis) in `c:\Old_Drive\Meraki\docker-compose.yml`.
+- CI: ephemeral environment (Docker Compose) for integration/E2E.
+- Staging: production-like (HTTPS, real DNS), sandbox payment keys, webhooks enabled.
+
+### Test Data
+- Use backend seed script to create consistent catalog/region/shipping defaults:
+  - Backend repo includes `src/scripts/seed.ts` and `yarn seed`.
+- Keep a dedicated test region/country code for deterministic behavior.
+- Payments:
+  - Prefer “Manual Payment” provider for CI E2E (no external dependency).
+  - Use sandbox keys for Stripe/Razorpay only in staging/perf/security tests where external calls are allowed.
+
+## 5) Unit Testing
+
+### Goals
+Verify isolated correctness of individual functions/components with deterministic inputs.
+
+### Backend (Medusa)
+- Tooling:
+  - Jest (already present): `c:\Old_Drive\Meraki\meraki\jest.config.js`
+- What to unit test:
+  - Pure utilities and transformations.
+  - Workflow steps (mock container/services).
+  - Subscribers/jobs logic (mock Medusa container).
+  - Custom API route handlers’ internal logic (mock services).
+- Success criteria:
+  - Coverage (backend): minimum 80% lines / 70% branches; increase incrementally for critical modules.
+  - Tests run < 60s locally for typical dev loop.
+  - No test uses real secrets; no network calls.
+
+### Storefront (Next.js)
+- Tooling (recommended):
+  - Vitest + React Testing Library + @testing-library/jest-dom
+  - MSW for network mocking (store API calls), when testing client components that fetch.
+- What to unit test:
+  - UI components: rendering, disabled/enabled states, conditional flows.
+  - Checkout logic components (shipping/payment/review): state transitions, validation, error rendering.
+  - Utility functions (money formatting, query string helpers, mapping functions).
+- Success criteria:
+  - Coverage (storefront): minimum 70% lines / 60% branches, with higher expectations for checkout modules.
+  - Deterministic tests (no reliance on timers/network unless mocked).
+
+## 6) Integration Testing
+
+### Goals
+Validate correct behavior across boundaries: API routes ↔ DB ↔ Medusa modules; storefront ↔ backend API.
+
+### Backend Integration (in-repo foundation exists)
+- Tooling:
+  - `@medusajs/test-utils` runner is already used:
+    - Example: `c:\Old_Drive\Meraki\meraki\integration-tests\http\health.spec.ts`
+    - Runner docs/examples: `c:\Old_Drive\Meraki\meraki\integration-tests\http\README.md`
+- Expand integration tests to cover:
+  - Store API:
+    - Cart creation/update, add/remove line items.
+    - Shipping option listing and adding shipping method.
+    - Payment session initiation.
+    - Cart completion → order creation.
+  - Webhook receiver routes (provider webhooks) using signed fixtures:
+    - Validate: correct signature verification, idempotency, correct payment session state transition.
+
+### Storefront ↔ Backend Integration
+- Tooling:
+  - Playwright API tests (or separate integration layer tests) against running backend.
+  - Contract checks against backend OpenAPI (optional but recommended if you publish/consume schemas).
+- Focus areas:
+  - `/store/payment-providers` returns expected providers per region.
+  - Checkout server actions correctly persist cart mutations and reflect state on refresh.
+
+### Success criteria
+- Integration tests run in CI on every PR.
+- No flaky tests (>99% pass rate across 20 consecutive CI runs).
+- All critical API flows have at least one integration test proving end-to-end server-side correctness.
+
+## 7) Regression Testing
+
+### Goals
+Ensure previously working behavior remains stable after changes.
+
+### Approach
+- Maintain a “Regression Suite” label/tag:
+  - Backend: Jest test naming convention or separate folder `__tests__/regression`.
+  - Storefront: Playwright test project or grep tag `@regression`.
+- Trigger strategy:
+  - PR checks: run unit + integration + a small E2E smoke suite.
+  - Nightly: run full E2E + larger integration matrix (regions/currencies) + security scans.
+  - Pre-release: full suite + performance baseline + webhook verification in staging.
+- What goes into regression:
+  - Any bug fix requires a test that fails pre-fix and passes post-fix.
+  - Checkout and order placement paths are always regression-covered.
+- Success criteria:
+  - Zero known regressions in critical flows.
+  - Time-to-detect regressions: within PR pipeline (not after merge).
+
+## 8) Headless Browser Testing (E2E)
+
+### Goals
+Validate critical user journeys and UI interactions in a realistic browser environment.
+
+### Tooling (recommended)
+- Playwright (Chromium + optionally WebKit/Firefox), headless in CI.
+
+### Required critical flows
+- Shopping:
+  - Browse products → product page → add to cart → adjust quantity → apply discount code (if enabled).
+- Checkout happy path (Manual Payment for CI):
+  - Addresses → select shipping → select payment → review → place order → order confirmation page.
+- Account:
+  - Register/login → view orders → order details page.
+- Failure paths (minimum):
+  - Checkout with missing address/shipping/payment shows correct errors and blocks progression.
+  - Payment session initiation failure shows recoverable error.
+- Payment provider validation (staging only):
+  - Razorpay/Stripe sandbox payment initiation completes and results in order creation.
+  - Webhook-driven completion is verified for interrupted sessions (close tab, then webhook updates).
+
+### Success criteria
+- E2E smoke suite: < 10 minutes in CI.
+- Full E2E suite: < 25 minutes nightly.
+- Flake budget: < 1% (quarantine and fix flaky tests immediately).
+
+## 9) Performance Testing
+
+### Goals
+Confirm the system handles expected traffic with acceptable latency and stability.
+
+### Tooling (recommended)
+- k6 (load testing) for backend Store API endpoints.
+- Lighthouse CI for storefront performance (Core Web Vitals style checks).
+
+### Scenarios
+- API load (k6):
+  - Browse products (list + retrieve), create cart, add line item, list shipping options, initiate payment session.
+  - Target concurrency based on expected peak (define below).
+- Web performance (Lighthouse):
+  - Home, product listing, product page, cart, checkout steps.
+
+### Success criteria (set initial targets; adjust after baseline)
+- Backend API:
+  - p95 latency: < 300ms for read endpoints, < 600ms for write endpoints under target load.
+  - Error rate: < 1% non-4xx under load.
+- Storefront:
+  - No major regressions in LCP/CLS/INP relative to baseline.
+- Run cadence:
+  - Nightly and pre-release; store results and compare against previous baseline.
+
+## 10) Security Testing (Payments + User Data)
+
+### Goals
+Prevent vulnerabilities, data leaks, and insecure payment handling.
+
+### Tooling (recommended)
+- Dependency scanning:
+  - `npm audit` / `yarn audit` (plus Dependabot or Renovate).
+- Secret scanning:
+  - Gitleaks (CI) to prevent committing API keys/webhook secrets.
+- SAST:
+  - Semgrep (rulesets for Node/TS/React; focus on injection, auth, crypto misuse).
+- DAST:
+  - OWASP ZAP against staging storefront + backend.
+- Payment/webhook verification:
+  - Signed webhook fixture tests (integration) + staging real webhook tests.
+
+### Specific security test cases
+- Authentication/session:
+  - Ensure cookies are secure in production (Secure, HttpOnly, SameSite as appropriate).
+  - Confirm CORS settings don’t expose auth endpoints.
+- Data protection:
+  - No PII in logs (emails, addresses, phone).
+  - Access control: customers can only read their own orders.
+- Payments:
+  - Webhook signature verification must reject invalid signatures.
+  - Idempotency: repeated webhook delivery does not create duplicate orders.
+  - Do not store payment secrets in storefront env; only publishable keys client-side.
+
+### Success criteria
+- Zero Critical/High findings open at release time.
+- Webhook signature verification is tested and enforced.
+- Secrets scanning passes on every PR.
+
+## 11) Automation (CI/CD)
+
+### Pipeline stages (recommended)
+- PR pipeline (required):
+  - Lint + typecheck
+  - Backend unit tests
+  - Backend integration tests (HTTP runner)
+  - Storefront unit tests
+  - E2E smoke (Playwright headless) with Manual Payment provider
+  - Dependency + secret scanning
+- Nightly pipeline:
+  - Full E2E matrix
+  - Performance (k6 + Lighthouse)
+  - DAST (ZAP) against staging or ephemeral env if feasible
+- Pre-release:
+  - Full regression + performance + security gates must be green.
+
+## 12) Ownership & Maintenance
+
+- Every new feature PR must include:
+  - Unit tests for new logic.
+  - Integration test if it crosses module boundaries or touches payments/checkout.
+  - E2E update if it changes critical flows.
+- Flaky tests are treated as defects; fix or quarantine within 24 hours.
+- Track coverage trends and prioritize checkout/payment areas.
+
+## 13) Test Inventory (Initial Backlog)
+
+### Backend
+- Cart lifecycle: create → add item → update quantity → shipping options → add shipping method → initiate payment → complete cart.
+- Webhook handler: signature invalid, signature valid, idempotency, out-of-order events.
+
+### Storefront
+- Checkout step gating: cannot proceed without required info.
+- Payment selection: provider list renders; error states display.
+- Order confirmation: correct redirect and display.
