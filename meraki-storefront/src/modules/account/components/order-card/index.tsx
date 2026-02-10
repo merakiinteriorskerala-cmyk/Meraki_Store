@@ -24,25 +24,25 @@ const OrderCard = ({ order }: OrderCardProps) => {
   }, [order])
 
   return (
-    <div className="bg-white flex flex-col" data-testid="order-card">
-      <div className="uppercase text-large-semi mb-1">
+    <div className="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-sm transition-shadow duration-200" data-testid="order-card">
+      <div className="uppercase text-sm font-bold font-sans mb-1 text-neutral-900">
         #<span data-testid="order-display-id">{order.display_id}</span>
       </div>
-      <div className="flex items-center divide-x divide-gray-200 text-small-regular text-ui-fg-base">
-        <span className="pr-2" data-testid="order-created-at">
+      <div className="flex items-center divide-x divide-neutral-200 text-sm text-neutral-500">
+        <span className="pr-3" data-testid="order-created-at">
           {new Date(order.created_at).toDateString()}
         </span>
-        <span className="px-2" data-testid="order-amount">
+        <span className="px-3" data-testid="order-amount">
           {convertToLocale({
             amount: order.total,
             currency_code: order.currency_code,
           })}
         </span>
-        <span className="pl-2">{`${numberOfLines} ${
+        <span className="pl-3">{`${numberOfLines} ${
           numberOfLines > 1 ? "items" : "item"
         }`}</span>
       </div>
-      <div className="grid grid-cols-2 small:grid-cols-4 gap-4 my-4">
+      <div className="grid grid-cols-2 small:grid-cols-4 gap-4 my-6">
         {order.items?.slice(0, 3).map((i) => {
           return (
             <div
@@ -73,9 +73,9 @@ const OrderCard = ({ order }: OrderCardProps) => {
           </div>
         )}
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-4">
         <LocalizedClientLink href={`/account/orders/details/${order.id}`}>
-          <Button data-testid="order-details-link" variant="secondary">
+          <Button data-testid="order-details-link" variant="secondary" className="rounded-full px-6">
             See details
           </Button>
         </LocalizedClientLink>

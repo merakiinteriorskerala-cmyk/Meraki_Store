@@ -6,6 +6,7 @@ import PaymentButton from "../payment-button"
 import { useSearchParams } from "next/navigation"
 
 const Review = ({ cart }: { cart: any }) => {
+  console.log("cart in Review:", cart)
   const searchParams = useSearchParams()
 
   const isOpen = searchParams.get("step") === "review"
@@ -24,7 +25,7 @@ const Review = ({ cart }: { cart: any }) => {
         <Heading
           level="h2"
           className={clx(
-            "flex flex-row text-3xl-regular gap-x-2 items-baseline",
+            "flex flex-row text-2xl md:text-3xl font-sans font-bold text-neutral-900 gap-x-2 items-center",
             {
               "opacity-50 pointer-events-none select-none": !isOpen,
             }
@@ -37,7 +38,7 @@ const Review = ({ cart }: { cart: any }) => {
         <>
           <div className="flex items-start gap-x-1 w-full mb-6">
             <div className="w-full">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
+              <Text className="text-sm text-neutral-500 mb-1 leading-relaxed">
                 By clicking the Place Order button, you confirm that you have
                 read, understand and accept our Terms of Use, Terms of Sale and
                 Returns Policy and acknowledge that you have read Medusa

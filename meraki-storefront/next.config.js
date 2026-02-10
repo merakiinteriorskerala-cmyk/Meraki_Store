@@ -1,5 +1,9 @@
 const checkEnvVariables = require("./check-env-variables")
 
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+})
+
 checkEnvVariables()
 
 /**
@@ -25,6 +29,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "http",
@@ -55,4 +60,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)

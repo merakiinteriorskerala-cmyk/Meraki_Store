@@ -14,9 +14,9 @@ import { Locale } from "@lib/data/locales"
 
 const primaryItems = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
-  { name: "Services", href: "/services" },
-  { name: "Contact", href: "/contact" },
+  { name: "Services", href: "/#services" },
+  { name: "About", href: "/#about" },
+  { name: "Contact", href: "/#contact" },
 ]
 
 const commerceItems = [
@@ -135,7 +135,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                             Get a Quote
                           </LocalizedClientLink>
                           <LocalizedClientLink
-                            href="/services"
+                            href="/#services"
                             onClick={close}
                             className="flex-1 inline-flex items-center justify-center rounded-full border border-neutral-200 text-neutral-900 h-12 text-sm font-medium hover:border-neutral-300 hover:bg-neutral-50 transition-all duration-300 hover:-translate-y-0.5"
                           >

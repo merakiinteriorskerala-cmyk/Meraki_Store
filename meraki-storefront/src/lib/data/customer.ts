@@ -127,6 +127,76 @@ export async function login(_currentState: unknown, formData: FormData) {
   }
 }
 
+type PasswordResetState = {
+  success: boolean
+  error: string | null
+}
+
+export async function requestPasswordReset(
+  _currentState: PasswordResetState,
+  formData: FormData
+): Promise<PasswordResetState> {
+  const email = formData.get("email") as string
+
+  if (!email) {
+    return { success: false, error: "Email is required" }
+  }
+
+  try {
+    await sdk.auth.resetPassword("customer", "emailpass", {
+      identifier: email,
+    })
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || error.toString(),
+    }
+  }
+}
+
+export async function resetPassword(
+  _currentState: PasswordResetState,
+  formData: FormData
+): Promise<PasswordResetState> {
+  const token = formData.get("token") as string
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+  const confirmPassword = formData.get("confirm_password") as string
+
+  if (!token) {
+    return { success: false, error: "Reset token is missing" }
+  }
+
+  if (!password) {
+    return { success: false, error: "Password is required" }
+  }
+
+  if (password !== confirmPassword) {
+    return { success: false, error: "Passwords do not match" }
+  }
+
+  try {
+    await sdk.auth.updateProvider(
+      "customer",
+      "emailpass",
+      {
+        email,
+        password,
+      },
+      token
+    )
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || error.toString(),
+    }
+  }
+}
+
 export async function signout(countryCode: string) {
   await sdk.auth.logout()
 
@@ -147,15 +217,28 @@ export async function transferCart() {
   const cartId = await getCartId()
 
   if (!cartId) {
-    return
+    return "No cart found"
   }
 
   const headers = await getAuthHeaders()
 
-  await sdk.store.cart.transferCart(cartId, {}, headers)
+  // Verify token validity
+  try {
+    await sdk.store.customer.retrieve({}, headers)
+  } catch (e) {
+    console.error("Token verification failed:", e)
+    return "Authentication failed. Please log in again."
+  }
 
-  const cartCacheTag = await getCacheTag("carts")
-  revalidateTag(cartCacheTag)
+  try {
+    await sdk.store.cart.transferCart(cartId, {}, headers)
+
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+  } catch (error: any) {
+    console.error("Cart transfer error:", error)
+    return error.message || "Failed to transfer cart"
+  }
 }
 
 export const addCustomerAddress = async (

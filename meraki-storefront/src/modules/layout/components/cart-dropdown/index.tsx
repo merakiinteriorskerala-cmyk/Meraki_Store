@@ -22,7 +22,7 @@ const CartDropdown = ({
 }: {
   cart?: HttpTypes.StoreCart | null
 }) => {
-  const [activeTimer, setActiveTimer] = useState<NodeJS.Timer | undefined>(
+  const [activeTimer, setActiveTimer] = useState<NodeJS.Timeout | undefined>(
     undefined
   )
   const [cartDropdownOpen, setCartDropdownOpen] = useState(false)
@@ -124,7 +124,7 @@ const CartDropdown = ({
             data-testid="nav-cart-dropdown"
           >
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between bg-white/50">
-              <h3 className="text-lg font-serif font-medium tracking-tight">Shopping Bag</h3>
+              <h3 className="text-lg font-bold font-sans tracking-tight text-neutral-900">Shopping Bag</h3>
               <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full">{totalItems} items</span>
             </div>
             {cartState && cartState.items?.length ? (
@@ -209,7 +209,7 @@ const CartDropdown = ({
                       <span className="text-neutral-400 text-xs">(excl. taxes)</span>
                     </span>
                     <span
-                      className="text-lg font-serif font-medium text-neutral-900"
+                      className="text-lg font-bold font-sans text-neutral-900"
                       data-testid="cart-subtotal"
                       data-value={subtotal}
                     >
@@ -241,7 +241,7 @@ const CartDropdown = ({
                       </svg>
                   </div>
                   <div className="flex flex-col gap-1">
-                      <span className="text-neutral-900 font-medium text-lg font-serif">Your bag is empty</span>
+                      <span className="text-neutral-900 font-bold text-lg font-sans">Your bag is empty</span>
                       <span className="text-neutral-500 text-sm">Looks like you haven't added anything yet.</span>
                   </div>
                   <div>

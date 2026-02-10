@@ -1,9 +1,11 @@
-import { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { getBaseURL } from "@lib/util/env"
+import { getProductPrice } from "@lib/util/get-product-price"
+import { HttpTypes } from "@medusajs/types"
 import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
-import { HttpTypes } from "@medusajs/types"
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -57,16 +59,16 @@ function getImagesForVariant(
   selectedVariantId?: string
 ) {
   if (!selectedVariantId || !product.variants) {
-    return product.images
+    return product.images || []
   }
 
-  const variant = product.variants!.find((v) => v.id === selectedVariantId)
-  if (!variant || !variant.images.length) {
-    return product.images
+  const variant = product.variants.find((v) => v.id === selectedVariantId)
+  if (!variant || !variant.images || !variant.images.length) {
+    return product.images || []
   }
 
   const imageIdsMap = new Map(variant.images.map((i) => [i.id, true]))
-  return product.images!.filter((i) => imageIdsMap.has(i.id))
+  return (product.images || []).filter((i) => imageIdsMap.has(i.id))
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
@@ -87,12 +89,24 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const { cheapestPrice } = getProductPrice({ product })
+
   return {
-    title: `${product.title} | Medusa Store`,
-    description: `${product.title}`,
+    title: `${product.title} | Meraki Woodwork`,
+    description: product.description || `${product.title} - Precision manufacturing for interior professionals.`,
+    alternates: {
+      canonical: `${getBaseURL()}/${params.countryCode}/products/${handle}`,
+    },
     openGraph: {
-      title: `${product.title} | Medusa Store`,
-      description: `${product.title}`,
+      title: `${product.title} | Meraki Woodwork`,
+      description: product.description || `${product.title} - Precision manufacturing for interior professionals.`,
+      url: `${getBaseURL()}/${params.countryCode}/products/${handle}`,
+      images: product.thumbnail ? [product.thumbnail] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.title} | Meraki Woodwork`,
+      description: product.description || `${product.title}`,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
   }
@@ -120,12 +134,65 @@ export default async function ProductPage(props: Props) {
     notFound()
   }
 
+  const { cheapestPrice } = getProductPrice({ product: pricedProduct })
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        name: pricedProduct.title,
+        description: pricedProduct.description,
+        image: pricedProduct.thumbnail,
+        sku: pricedProduct.handle,
+        offers: {
+          "@type": "Offer",
+          price: cheapestPrice?.calculated_price_number,
+          priceCurrency: cheapestPrice?.currency_code,
+          availability: pricedProduct.variants?.some((v) => (v.inventory_quantity || 0) > 0)
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+          url: `${getBaseURL()}/${params.countryCode}/products/${params.handle}`,
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: `${getBaseURL()}/${params.countryCode}`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Store",
+            item: `${getBaseURL()}/${params.countryCode}/store`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: pricedProduct.title,
+            item: `${getBaseURL()}/${params.countryCode}/products/${params.handle}`,
+          },
+        ],
+      },
+    ],
+  }
+
   return (
-    <ProductTemplate
-      product={pricedProduct}
-      region={region}
-      countryCode={params.countryCode}
-      images={images}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductTemplate
+        product={pricedProduct}
+        region={region}
+        countryCode={params.countryCode}
+        images={images}
+      />
+    </>
   )
 }

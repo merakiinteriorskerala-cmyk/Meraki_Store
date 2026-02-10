@@ -31,38 +31,43 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
   return (
     <>
-      <div
-        className="content-container flex flex-col small:flex-row small:items-start py-12 relative gap-x-12"
-        data-testid="product-container"
-      >
-        <div className="block w-full small:w-[45%] relative">
-          <ImageGallery images={images} />
-        </div>
-        <div className="flex flex-col small:sticky small:top-32 small:py-0 small:w-[55%] w-full py-8 gap-y-10">
-          <ProductInfo product={product} />
-          <div className="flex flex-col gap-y-8">
-            <Suspense
-              fallback={
-                <ProductActions
-                  disabled={true}
-                  product={product}
-                  region={region}
-                />
-              }
-            >
-              <ProductActionsWrapper id={product.id} region={region} />
-            </Suspense>
-            <ProductTabs product={product} />
+      <div className="relative w-full bg-white min-h-screen">
+        {/* Dot Pattern Background */}
+        <div className="absolute inset-0 -z-10 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+        
+        <div
+          className="content-container flex flex-col small:flex-row small:items-start py-12 relative gap-x-16"
+          data-testid="product-container"
+        >
+          <div className="block w-full small:w-[55%] relative">
+            <ImageGallery images={images} />
+          </div>
+          <div className="flex flex-col small:sticky small:top-32 small:py-0 small:w-[45%] w-full py-8 gap-y-8">
+            <ProductInfo product={product} />
+            <div className="flex flex-col gap-y-6 pt-4 border-t border-neutral-100">
+              <Suspense
+                fallback={
+                  <ProductActions
+                    disabled={true}
+                    product={product}
+                    region={region}
+                  />
+                }
+              >
+                <ProductActionsWrapper id={product.id} region={region} />
+              </Suspense>
+              <ProductTabs product={product} />
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="content-container my-24 small:my-40"
-        data-testid="related-products-container"
-      >
-        <Suspense fallback={<SkeletonRelatedProducts />}>
-          <RelatedProducts product={product} countryCode={countryCode} />
-        </Suspense>
+        <div
+          className="content-container my-24 small:my-40 border-t border-neutral-100 pt-24"
+          data-testid="related-products-container"
+        >
+          <Suspense fallback={<SkeletonRelatedProducts />}>
+            <RelatedProducts product={product} countryCode={countryCode} />
+          </Suspense>
+        </div>
       </div>
     </>
   )

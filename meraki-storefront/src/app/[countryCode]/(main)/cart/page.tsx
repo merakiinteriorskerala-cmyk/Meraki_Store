@@ -5,8 +5,12 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 export const metadata: Metadata = {
-  title: "Cart",
+  title: "Cart | Meraki Woodwork",
   description: "View your cart",
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default async function Cart() {

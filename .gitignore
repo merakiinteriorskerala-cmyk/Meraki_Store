@@ -1,0 +1,73 @@
+# =========================
+# Root-level monorepo ignores
+# =========================
+
+# -- Secrets & credentials --
+pwd.txt
+*.pem
+.env
+.env.*
+!.env.example
+!.env.test
+
+# -- Dependencies --
+node_modules/
+
+# -- Build outputs --
+dist/
+build/
+.next/
+out/
+.cache/
+.medusa/
+*.tsbuildinfo
+
+# -- Package manager caches --
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# -- IDE / Editor --
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# -- OS files --
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -- Logs --
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# -- Test artifacts --
+coverage/
+meraki-storefront/html/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# -- Database --
+dump.rdb
+*.sql
+
+# -- payment-razorpay local copy (installed via GitHub in package.json) --
+payment-razorpay/
+
+# -- Vercel --
+.vercel/
+
+# -- Misc --
+*.tgz
+.turbo/

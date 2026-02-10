@@ -27,7 +27,7 @@ const EmptyCartMessage = () => {
       </div>
       <Heading
         level="h1"
-        className="text-3xl md:text-4xl font-serif font-medium text-neutral-900 mb-4 tracking-tight"
+        className="text-3xl md:text-4xl font-bold font-sans text-neutral-900 mb-4 tracking-tight"
       >
         Your bag is empty
       </Heading>

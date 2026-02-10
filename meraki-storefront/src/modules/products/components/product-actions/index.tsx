@@ -173,11 +173,11 @@ export default function ProductActions({
             !isValidVariant
           }
           variant="primary"
-          className="w-full h-12 text-base font-medium rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+          className="w-full h-14 text-base font-medium rounded-full bg-neutral-900 text-white shadow-lg hover:bg-neutral-800 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none disabled:translate-y-0"
           isLoading={isAdding}
           data-testid="add-product-button"
         >
-          {!selectedVariant && !options
+          {!selectedVariant && Object.keys(options).length === 0
             ? "Select Options"
             : !inStock || !isValidVariant
             ? "Out of Stock"

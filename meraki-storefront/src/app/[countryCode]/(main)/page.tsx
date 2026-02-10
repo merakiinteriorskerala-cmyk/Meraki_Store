@@ -1,5 +1,7 @@
 import { Metadata } from "next"
 import Image from "next/image"
+import { Suspense } from "react"
+import { getBaseURL } from "@lib/util/env"
 
 import FastDelivery from "@modules/common/icons/fast-delivery"
 import Package from "@modules/common/icons/package"
@@ -7,6 +9,8 @@ import Refresh from "@modules/common/icons/refresh"
 import User from "@modules/common/icons/user"
 import FeaturedProducts from "@modules/home/components/featured-products"
 import Hero from "@modules/home/components/hero"
+import Services from "@modules/home/components/services"
+import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import { listCollections } from "@lib/data/collections"
 import { getRegion } from "@lib/data/regions"
 
@@ -14,6 +18,9 @@ export const metadata: Metadata = {
   title: "Meraki Interior Factory - Premium Woodwork Solutions",
   description:
     "Expert woodwork solutions with precision cutting, lamination pressing, and edge banding services. Bringing excellence to every cut, press, and finish.",
+  alternates: {
+    canonical: "/",
+  },
 }
 
 export default async function Home(props: {
@@ -33,157 +40,205 @@ export default async function Home(props: {
     return null
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Meraki Interior Factory",
+    url: getBaseURL(),
+    logo: `${getBaseURL()}/images/meraki-interiors-logo.png`,
+    sameAs: [
+      "https://facebook.com/merakiwoodwork",
+      "https://www.instagram.com/merakiinteriors_tcr",
+      "https://linkedin.com/company/merakiwoodwork",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: "+917025115000",
+      contactType: "customer service",
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Hero />
       
-      {/* Premium Services Section */}
-      <section className="py-32 bg-neutral-50">
-        <div className="content-container">
-          <div className="text-center mb-20">
-            <span className="text-sm uppercase tracking-widest text-neutral-500 mb-4 block">Our Craftsmanship</span>
-            <h2 className="text-4xl md:text-5xl font-serif mb-6 text-neutral-900">Precision in Every Detail</h2>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto font-light">
-              We combine traditional woodworking expertise with modern technology to deliver exceptional results
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              {
-                title: "Precision Cutting",
-                desc: "State-of-the-art CNC cutting for flawless accuracy in plywood and multiwood.",
-                icon: "⚡",
-                imageSrc: "/images/cutting.jpg",
-              },
-              {
-                title: "Lamination Pressing",
-                desc: "Perfect surface finishes with durable, high-quality lamination for lasting beauty.",
-                icon: "✨",
-                imageSrc: "/images/pressing.avif",
-              },
-              {
-                title: "Edge Banding",
-                desc: "Seamless edge finishing that elevates your furniture to professional standards.",
-                icon: "🔍",
-                imageSrc: "/images/edge-banding-meraki.jpg",
-              },
-            ].map((item, i) => (
-              <div key={i} className="group p-10 bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 border border-neutral-100 hover:border-neutral-200">
-                {item.imageSrc ? (
-                  <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden mb-6">
-                    <Image
-                      src={item.imageSrc}
-                      alt={item.title}
-                      fill
-                      sizes="(min-width: 768px) 320px, 100vw"
-                      className="object-cover"
-                      priority={i === 0}
-                    />
-                  </div>
-                ) : (
-                  <div className="text-4xl mb-6 text-neutral-600 group-hover:text-neutral-900 transition-colors">{item.icon}</div>
-                )}
-                <h3 className="text-2xl font-serif mb-4 text-neutral-900 group-hover:text-neutral-800 transition-colors">{item.title}</h3>
-                <p className="text-neutral-500 leading-relaxed group-hover:text-neutral-600 transition-colors">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us Section */}
-      <section className="py-32 bg-neutral-900 text-white">
-        <div className="content-container">
-          <div className="text-center mb-20">
-            <span className="text-sm uppercase tracking-widest text-neutral-400 mb-4 block">Why Meraki</span>
-            <h2 className="text-4xl md:text-5xl font-serif mb-6">Excellence in Woodwork</h2>
-            <p className="text-lg text-neutral-300 max-w-2xl mx-auto font-light">
-              We bring passion and precision to every project, ensuring your vision becomes reality
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                title: "Modern Machinery",
-                desc: "Cutting-edge technology for perfect results every time",
-                icon: <Refresh size="22" />,
-              },
-              {
-                title: "Expert Craftsmanship",
-                desc: "Skilled artisans with years of experience",
-                icon: <User size="22" />,
-              },
-              {
-                title: "Quality Materials",
-                desc: "Premium woods and finishes for lasting durability",
-                icon: <Package size="22" />,
-              },
-              {
-                title: "Timely Delivery",
-                desc: "Reliable service that respects your schedule",
-                icon: <FastDelivery size="22" />,
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="group text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors"
-              >
-                <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10 text-white/80 group-hover:text-white transition-colors">
-                  {item.icon}
-                </div>
-                <h3 className="text-lg font-semibold mb-3 text-white tracking-tight">
-                  {item.title}
-                </h3>
-                <p className="text-neutral-300 text-sm leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Detailed Services Section */}
+      <Services />
 
       {/* Featured Collections */}
-      <section className="py-32 bg-white">
-        <div className="content-container">
-          <div className="text-center mb-20">
-            <span className="text-sm uppercase tracking-widest text-neutral-500 mb-4 block">Our Work</span>
-            <h2 className="text-4xl md:text-5xl font-serif mb-6 text-neutral-900">Featured Collections</h2>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto font-light">
-              Explore our premium woodwork collections and discover the perfect pieces for your space
-            </p>
-          </div>
-          
-          <div className="mb-12 flex justify-between items-center">
-            <h3 className="text-2xl font-serif text-neutral-900">Latest Creations</h3>
-            <a href="/store" className="px-6 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium">
-              View All Collections
+      <section className="py-32 bg-white relative overflow-hidden">
+        {/* Dot Pattern Background */}
+        <div className="absolute inset-0 -z-10 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+        
+        <div className="content-container relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-xs font-medium text-neutral-600 mb-6">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                OUR WORK
+              </div>
+              <h2 className="text-4xl md:text-5xl font-sans font-bold mb-4 text-neutral-900 tracking-tight">
+                Featured Products
+              </h2>
+              <p className="text-lg text-neutral-500 font-light">
+                Explore our premium woodwork collections and discover the perfect pieces for your space.
+              </p>
+            </div>
+            
+            <a href="/store" className="group inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-all">
+              View All Products
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeaturedProducts collections={collections} region={region} />
+          <Suspense fallback={<SkeletonProductGrid numberOfProducts={6} />}>
+            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <FeaturedProducts collections={collections} region={region} />
+            </ul>
+          </Suspense>
+        </div>
+      </section>
+
+      {/* About Us Section */}
+      <section id="about" className="py-32 bg-neutral-900 text-white relative overflow-hidden">
+        {/* Subtle Mesh Gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-neutral-800/30 via-neutral-900 to-neutral-900" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="content-container relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center mb-24">
+            {/* Left Column: Text Content */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-blue-300 mb-8">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                ABOUT MERAKI
+              </div>
+              
+              <h2 className="text-4xl md:text-6xl font-sans font-bold mb-8 leading-tight tracking-tight">
+                Crafting Excellence <br/>
+                <span className="text-neutral-500">At Industrial Scale</span>
+              </h2>
+              
+              <p className="text-lg text-neutral-400 leading-relaxed mb-10 font-light max-w-xl">
+                We bridge the gap between design and production. By combining advanced machinery with skilled craftsmanship, we deliver factory-level precision for every interior project.
+              </p>
+
+              <div className="space-y-8 mb-12">
+                <div className="flex items-start gap-4 group">
+                  <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center border border-white/5 shrink-0 group-hover:bg-neutral-700 transition-colors">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-white mb-1">Precision Manufacturing</h3>
+                    <p className="text-neutral-500 text-sm leading-relaxed">Automated cutting and edge banding for zero-error tolerance.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4 group">
+                   <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center border border-white/5 shrink-0 group-hover:bg-neutral-700 transition-colors">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-white mb-1">Consistent Quality</h3>
+                    <p className="text-neutral-500 text-sm leading-relaxed">Rigorous quality control processes for high-volume production.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button className="text-sm font-medium text-white border-b border-white/30 pb-1 hover:border-white transition-colors">
+                Read our full story &rarr;
+              </button>
+            </div>
+            
+            {/* Right Column: Stats Grid */}
+            <div className="grid grid-cols-2 gap-4">
+               {[
+                 { icon: <Refresh className="w-6 h-6 text-blue-400" />, title: "Modern Tech", desc: "CNC Precision" },
+                 { icon: <User className="w-6 h-6 text-purple-400" />, title: "Expert Team", desc: "Skilled Craftsmen" },
+                 { icon: <Package className="w-6 h-6 text-amber-400" />, title: "Quality Materials", desc: "Premium Sourcing" },
+                 { icon: <FastDelivery className="w-6 h-6 text-emerald-400" />, title: "Timely Delivery", desc: "On-Schedule" }
+               ].map((stat, i) => (
+                 <div key={i} className={`bg-neutral-800/40 backdrop-blur-sm p-6 rounded-2xl border border-white/5 hover:border-white/10 hover:bg-neutral-800/60 transition-all duration-300 ${i % 2 !== 0 ? 'mt-8' : ''}`}>
+                    <div className="mb-4">{stat.icon}</div>
+                    <h3 className="text-lg font-semibold text-white mb-1">{stat.title}</h3>
+                    <p className="text-xs text-neutral-500">{stat.desc}</p>
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          {/* Bottom Section: Partners */}
+          <div className="border-t border-white/5 pt-12">
+            <p className="text-sm text-neutral-500 mb-6 uppercase tracking-wider font-medium">Trusted by Industry Professionals</p>
+            <div className="flex flex-wrap gap-3">
+              {[
+                "Interior Designers",
+                "Carpenters",
+                "Modular Kitchen Dealers",
+                "Builders",
+                "Furniture Makers",
+              ].map((item, i) => (
+                <span key={i} className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-neutral-400 text-xs font-medium hover:bg-white/10 hover:text-white transition-colors cursor-default">
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-32 bg-neutral-100">
-        <div className="content-container text-center">
-          <h2 className="text-4xl md:text-5xl font-serif mb-8 text-neutral-900">Ready to Start Your Project?</h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto mb-12 font-light">
-            Let's discuss your woodwork needs and bring your vision to life with precision and care
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <a href="/contact" className="px-12 py-4 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium text-lg">
-              Get a Quote
-            </a>
-            <a href="/services" className="px-12 py-4 border-2 border-neutral-900 text-neutral-900 rounded-lg hover:bg-neutral-900 hover:text-white transition-colors font-medium text-lg">
-              View Services
-            </a>
-          </div>
+      {/* Contact Section */}
+      <section id="contact" className="py-32 bg-neutral-900 relative overflow-hidden text-white">
+        {/* Background Gradients */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-800/30 via-neutral-900 to-neutral-900" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="content-container relative z-10">
+           <div className="max-w-4xl mx-auto text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-blue-300 mb-6">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                GET IN TOUCH
+              </div>
+              <h2 className="text-4xl md:text-5xl font-sans font-bold mb-6 text-white tracking-tight">Contact Us</h2>
+              <p className="text-lg text-neutral-400 mb-8 font-light max-w-2xl mx-auto">
+                Ready to start your project? Let's discuss your requirements and build something exceptional.
+              </p>
+           </div>
+
+           <div className="bg-neutral-800/30 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-white/5 max-w-5xl mx-auto hover:border-white/10 transition-colors duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x divide-white/5">
+                 <div className="text-center md:text-left md:pr-8">
+                    <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Visit Us</h3>
+                    <p className="text-neutral-400 leading-relaxed text-sm">
+                      8/244-F, Alumkunnu,<br />
+                      Chottupara, Kilannur,<br />
+                      Thrissur, Kerala - 680 581
+                    </p>
+                 </div>
+                 <div className="text-center md:text-left md:px-8 pt-8 md:pt-0">
+                    <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Call Us</h3>
+                    <p className="text-2xl font-medium text-white tracking-tight">+91 7025115000</p>
+                    <p className="text-xs text-neutral-500 mt-2">Mon-Sat, 9am - 6pm</p>
+                 </div>
+                 <div className="text-center md:text-left md:pl-8 pt-8 md:pt-0">
+                    <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Email Us</h3>
+                    <a href="mailto:merakiinteriorskerala@gmail.com" className="text-lg font-medium text-white hover:text-blue-400 transition-colors break-words">
+                      merakiinteriorskerala<br/>@gmail.com
+                    </a>
+                 </div>
+              </div>
+           </div>
         </div>
       </section>
     </>

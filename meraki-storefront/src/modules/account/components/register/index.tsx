@@ -17,13 +17,13 @@ const Register = ({ setCurrentView }: Props) => {
 
   return (
     <div
-      className="max-w-sm flex flex-col items-center"
+      className="max-w-md flex flex-col items-center bg-white/80 backdrop-blur-md border border-neutral-200 rounded-3xl p-10 shadow-sm"
       data-testid="register-page"
     >
-      <h1 className="text-3xl font-serif text-ui-fg-base mb-2">
+      <h1 className="text-3xl font-bold font-sans text-neutral-900 mb-2">
         Join Meraki
       </h1>
-      <p className="text-center text-small-regular text-ui-fg-subtle mb-8">
+      <p className="text-center text-sm text-neutral-600 mb-8">
         Create your profile to access exclusive collections and track your orders.
       </p>
       <form className="w-full flex flex-col" action={formAction}>
@@ -67,18 +67,18 @@ const Register = ({ setCurrentView }: Props) => {
           />
         </div>
         <ErrorMessage error={message} data-testid="register-error" />
-        <span className="text-center text-ui-fg-subtle text-small-regular mt-6">
+        <span className="text-center text-neutral-500 text-sm mt-6">
           By creating an account, you agree to Meraki&apos;s{" "}
           <LocalizedClientLink
             href="/content/privacy-policy"
-            className="underline hover:text-ui-fg-base"
+            className="underline hover:text-neutral-900 font-medium"
           >
             Privacy Policy
           </LocalizedClientLink>{" "}
           and{" "}
           <LocalizedClientLink
             href="/content/terms-of-use"
-            className="underline hover:text-ui-fg-base"
+            className="underline hover:text-neutral-900 font-medium"
           >
             Terms of Use
           </LocalizedClientLink>
@@ -88,11 +88,11 @@ const Register = ({ setCurrentView }: Props) => {
           Join
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-subtle text-small-regular mt-6">
+      <span className="text-center text-neutral-500 text-sm mt-6">
         Already a member?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.SIGN_IN)}
-          className="underline hover:text-ui-fg-base"
+          className="underline hover:text-neutral-900 font-medium"
         >
           Sign in
         </button>

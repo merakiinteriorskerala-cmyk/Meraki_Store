@@ -392,7 +392,9 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
  * @returns The cart object if the order was successful, or null if not.
  */
 export async function placeOrder(cartId?: string) {
+  console.log("hi")
   const id = cartId || (await getCartId())
+  console.log("id: ", id)
 
   if (!id) {
     throw new Error("No existing cart found when placing an order")
@@ -401,6 +403,7 @@ export async function placeOrder(cartId?: string) {
   const headers = {
     ...(await getAuthHeaders()),
   }
+  console.log("headers: ", headers)
 
   const cartRes = await sdk.store.cart
     .complete(id, {}, headers)
@@ -411,6 +414,8 @@ export async function placeOrder(cartId?: string) {
     })
     .catch(medusaError)
 
+  console.log("cartRes: ", cartRes)
+
   if (cartRes?.type === "order") {
     const countryCode =
       cartRes.order.shipping_address?.country_code?.toLowerCase()
@@ -418,11 +423,121 @@ export async function placeOrder(cartId?: string) {
     const orderCacheTag = await getCacheTag("orders")
     revalidateTag(orderCacheTag)
 
+    const productsCacheTag = await getCacheTag("products")
+    revalidateTag(productsCacheTag)
+
+    const variantsCacheTag = await getCacheTag("variants")
+    revalidateTag(variantsCacheTag)
+
     removeCartId()
     redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
   }
 
   return cartRes.cart
+}
+
+export async function authorizePayment(
+  cartId: string,
+  providerId: string,
+  data: Record<string, unknown>
+) {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const cart = await retrieveCart(cartId, "*payment_collection.payment_sessions")
+
+  if (!cart) {
+    throw new Error("Cart not found")
+  }
+
+  const paymentSession = cart.payment_collection?.payment_sessions?.find(
+    (s: any) => s.provider_id === providerId
+  )
+
+  if (!paymentSession) {
+    throw new Error("Payment session not found")
+  }
+
+  return sdk.client
+    .fetch(`/store/razorpay/verify`, {
+      method: "POST",
+      headers,
+      body: {
+        session_id: paymentSession.id,
+        ...data,
+      },
+    })
+    .then(async (resp) => {
+      const cartCacheTag = await getCacheTag("carts")
+      revalidateTag(cartCacheTag)
+      return resp
+    })
+    .catch(medusaError)
+}
+
+export async function waitForPaymentCompletion({
+  cartId,
+  providerId,
+  timeoutMs = 60_000,
+  intervalMs = 2_000,
+}: {
+  cartId?: string
+  providerId?: string
+  timeoutMs?: number
+  intervalMs?: number
+}) {
+  const id = cartId || (await getCartId())
+
+  if (!id) {
+    throw new Error("No existing cart found")
+  }
+
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const startedAt = Date.now()
+
+  while (true) {
+    const cart = await sdk.client
+      .fetch<HttpTypes.StoreCartResponse>(`/store/carts/${id}`, {
+        method: "GET",
+        query: {
+          fields: "id,*payment_collection,*payment_collection.payment_sessions",
+        },
+        headers,
+        cache: "no-store",
+      })
+      .then(({ cart }) => cart)
+      .catch(medusaError)
+
+    const paymentSession = providerId
+      ? cart.payment_collection?.payment_sessions?.find(
+          (s: any) => s.provider_id === providerId
+        )
+      : cart.payment_collection?.payment_sessions?.[0]
+
+    const status = (paymentSession as any)?.status
+
+    if (status === "authorized" || status === "captured") {
+      const cartCacheTag = await getCacheTag("carts")
+      revalidateTag(cartCacheTag)
+      return cart
+    }
+
+    if (status === "error" || status === "canceled") {
+      throw new Error(`Payment ${status}`)
+    }
+
+    if (Date.now() - startedAt >= timeoutMs) {
+      throw new Error(
+        "Payment is not confirmed yet. Please wait a moment and try again."
+      )
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+  }
 }
 
 /**

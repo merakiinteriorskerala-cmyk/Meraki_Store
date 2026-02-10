@@ -14,11 +14,11 @@ const Login = ({ setCurrentView }: Props) => {
 
   return (
     <div
-      className="max-w-sm w-full flex flex-col items-center"
+      className="max-w-md w-full flex flex-col items-center bg-white/80 backdrop-blur-md border border-neutral-200 rounded-3xl p-10 shadow-sm"
       data-testid="login-page"
     >
-      <h1 className="text-3xl font-serif text-ui-fg-base mb-2">Welcome Back</h1>
-      <p className="text-center text-small-regular text-ui-fg-subtle mb-8">
+      <h1 className="text-3xl font-bold font-sans text-neutral-900 mb-2">Welcome Back</h1>
+      <p className="text-center text-sm text-neutral-600 mb-8">
         Sign in to access your curated Meraki experience.
       </p>
       <form className="w-full" action={formAction}>
@@ -41,16 +41,26 @@ const Login = ({ setCurrentView }: Props) => {
             data-testid="password-input"
           />
         </div>
+        <div className="flex items-center justify-end mt-2">
+          <button
+            type="button"
+            onClick={() => setCurrentView(LOGIN_VIEW.FORGOT_PASSWORD)}
+            className="text-sm font-medium text-neutral-500 underline hover:text-neutral-900 transition-colors"
+            data-testid="forgot-password-button"
+          >
+            Forgot password?
+          </button>
+        </div>
         <ErrorMessage error={message} data-testid="login-error-message" />
         <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
           Sign in
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-subtle text-small-regular mt-6">
+      <span className="text-center text-neutral-500 text-sm mt-6">
         Not a member?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
-          className="underline hover:text-ui-fg-base transition-colors"
+          className="underline hover:text-neutral-900 transition-colors font-medium"
           data-testid="register-button"
         >
           Join us

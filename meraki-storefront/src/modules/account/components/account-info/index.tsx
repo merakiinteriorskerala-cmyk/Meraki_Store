@@ -57,7 +57,7 @@ const AccountInfo = ({
         <div>
           <Button
             variant="secondary"
-            className="w-[100px] min-h-[25px] py-1"
+            className="w-[100px] min-h-[32px] py-1 rounded-full text-xs font-medium"
             onClick={handleToggle}
             type={state ? "reset" : "button"}
             data-testid="edit-button"

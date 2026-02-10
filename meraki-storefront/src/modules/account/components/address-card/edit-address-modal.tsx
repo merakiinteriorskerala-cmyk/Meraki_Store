@@ -65,29 +65,30 @@ const EditAddress: React.FC<EditAddressProps> = ({
     <>
       <div
         className={clx(
-          "border rounded-rounded p-5 min-h-[220px] h-full w-full flex flex-col justify-between transition-colors",
+          "border rounded-xl p-6 min-h-[220px] h-full w-full flex flex-col justify-between transition-all duration-200 hover:shadow-sm bg-white",
           {
-            "border-gray-900": isActive,
+            "border-neutral-900": isActive,
+            "border-neutral-200": !isActive,
           }
         )}
         data-testid="address-container"
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-y-1">
           <Heading
-            className="text-left text-base-semi"
+            className="text-left text-base font-bold font-sans text-neutral-900"
             data-testid="address-name"
           >
             {address.first_name} {address.last_name}
           </Heading>
           {address.company && (
             <Text
-              className="txt-compact-small text-ui-fg-base"
+              className="text-sm text-neutral-500"
               data-testid="address-company"
             >
               {address.company}
             </Text>
           )}
-          <Text className="flex flex-col text-left text-base-regular mt-2">
+          <Text className="flex flex-col text-left text-sm text-neutral-600 mt-2 gap-y-0.5">
             <span data-testid="address-address">
               {address.address_1}
               {address.address_2 && <span>, {address.address_2}</span>}
@@ -101,21 +102,21 @@ const EditAddress: React.FC<EditAddressProps> = ({
             </span>
           </Text>
         </div>
-        <div className="flex items-center gap-x-4">
+        <div className="flex items-center gap-x-4 mt-6">
           <button
-            className="text-small-regular text-ui-fg-base flex items-center gap-x-2"
+            className="text-small-regular text-neutral-900 flex items-center gap-x-2 hover:underline font-medium"
             onClick={open}
             data-testid="address-edit-button"
           >
-            <Edit />
+            <Edit className="text-neutral-500" />
             Edit
           </button>
           <button
-            className="text-small-regular text-ui-fg-base flex items-center gap-x-2"
+            className="text-small-regular text-neutral-900 flex items-center gap-x-2 hover:underline font-medium"
             onClick={removeAddress}
             data-testid="address-delete-button"
           >
-            {removing ? <Spinner /> : <Trash />}
+            {removing ? <Spinner /> : <Trash className="text-neutral-500" />}
             Remove
           </button>
         </div>

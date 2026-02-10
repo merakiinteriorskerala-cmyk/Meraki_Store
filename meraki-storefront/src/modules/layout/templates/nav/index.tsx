@@ -17,22 +17,22 @@ const primaryItems = [
     ),
   },
   {
+    name: "Services",
+    href: "/#services",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+  },
+  {
     name: "About",
-    href: "/about",
+    href: "/#about",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
         <path d="M12 16v-4" />
         <path d="M12 8h.01" />
-      </svg>
-    ),
-  },
-  {
-    name: "Services",
-    href: "/services",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
       </svg>
     ),
   },
@@ -85,97 +85,98 @@ const commerceItems = [
 export default async function Nav() {
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
-      <header className="relative mx-auto border-b border-ui-border-base bg-white/70 backdrop-blur-xl duration-200">
-        <nav className="content-container txt-xsmall-plus text-ui-fg-subtle flex items-center justify-between w-full h-20 text-small-regular">
+      <header className="relative mx-auto border-b border-neutral-200/60 bg-white/80 backdrop-blur-md transition-all duration-300">
+        <nav className="content-container flex items-center justify-between w-full h-16 lg:h-20 text-sm font-medium">
+          {/* Logo Section */}
           <div className="flex-1 flex items-center justify-start">
             <LocalizedClientLink
               href="/"
-              className="hover:text-ui-fg-base uppercase tracking-wide"
+              className="hover:opacity-80 transition-opacity"
               data-testid="nav-store-link"
             >
               <Image
                 src="/images/meraki-interiors-logo.png"
                 alt="Meraki Interior Factory"
-                width={200}
-                height={55}
-                className="h-14 w-auto object-contain"
+                width={180}
+                height={50}
+                className="h-10 lg:h-12 w-auto object-contain"
+                priority
               />
             </LocalizedClientLink>
           </div>
 
-          <div className="hidden small:flex flex-1 items-center justify-center gap-x-2">
+          {/* Primary Navigation - Desktop */}
+          <div className="hidden lg:flex items-center justify-center gap-x-1 bg-neutral-100/50 p-1 rounded-full border border-neutral-200/50 backdrop-blur-sm">
             {primaryItems.map((item) => (
               <ActiveLink
                 key={item.name}
                 href={item.href}
-                className="h-10 px-5 inline-flex items-center gap-2 rounded-full text-base font-medium text-ui-fg-subtle hover:text-ui-fg-base transition-all duration-200"
-                activeClassName="!bg-neutral-900 !text-white shadow-md"
+                className="h-9 px-4 inline-flex items-center gap-2 rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-white hover:shadow-sm transition-all duration-200"
+                activeClassName="!bg-white !text-neutral-900 shadow-sm border border-neutral-200/50"
                 data-testid={`nav-${item.name.toLowerCase()}-link`}
               >
                 {item.icon}
-                <span className="tracking-wide">{item.name}</span>
+                <span>{item.name}</span>
               </ActiveLink>
             ))}
           </div>
 
-          <div className="flex-1 flex items-center justify-end gap-x-4">
-            <div className="hidden small:flex items-center gap-x-4">
+          {/* Right Actions */}
+          <div className="flex-1 flex items-center justify-end gap-x-3">
+            <div className="hidden lg:flex items-center gap-x-3">
               {commerceItems.map((item) => (
                 <ActiveLink
                   key={item.name}
                   className={
                     item.name === "Store"
-                      ? "group h-10 px-6 inline-flex items-center gap-2 rounded-full text-base font-medium border border-neutral-900/10 bg-white text-neutral-900 hover:border-neutral-900/20 hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300"
-                      : "h-10 px-5 inline-flex items-center gap-2 rounded-full text-base font-medium text-ui-fg-subtle hover:text-ui-fg-base transition-all duration-200"
+                      ? "h-9 px-4 inline-flex items-center gap-2 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 shadow-md"
+                      : "h-9 px-4 inline-flex items-center gap-2 rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-all duration-200"
                   }
                   href={item.href}
                   activeClassName={
                     item.name === "Store"
-                      ? "!bg-neutral-900 !text-white !border-neutral-900 shadow-lg hover:shadow-xl"
-                      : "!bg-neutral-900 !text-white shadow-md"
+                      ? "!bg-neutral-800 ring-2 ring-neutral-900 ring-offset-2"
+                      : "!bg-neutral-100 !text-neutral-900"
                   }
                   data-testid={`nav-${item.name.toLowerCase()}-link`}
                 >
                   {item.icon}
-                  <span className={
-                    item.name === "Store"
-                      ? "tracking-wide font-medium"
-                      : "tracking-wide"
-                  }>
-                    {item.name}
-                  </span>
+                  <span>{item.name}</span>
                 </ActiveLink>
               ))}
             </div>
 
+            {/* Cart Button */}
             <Suspense
               fallback={
                 <LocalizedClientLink
-                  className="group h-10 px-4 inline-flex items-center gap-2 rounded-full hover:bg-ui-bg-subtle hover:text-ui-fg-base transition-all duration-200"
+                  className="group h-9 w-9 lg:w-auto lg:px-4 inline-flex items-center justify-center gap-2 rounded-full hover:bg-neutral-100 transition-all duration-200 border border-transparent hover:border-neutral-200"
                   href="/cart"
                   data-testid="nav-cart-link"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-ui-fg-subtle group-hover:text-ui-fg-base transition-colors"
-                  >
-                    <circle cx="8" cy="21" r="1" />
-                    <circle cx="19" cy="21" r="1" />
-                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                  </svg>
-                  <span className="font-medium text-ui-fg-subtle group-hover:text-ui-fg-base">
+                  <div className="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-neutral-600 group-hover:text-neutral-900"
+                    >
+                      <circle cx="8" cy="21" r="1" />
+                      <circle cx="19" cy="21" r="1" />
+                      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                    </svg>
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white ring-2 ring-white">
+                      0
+                    </span>
+                  </div>
+                  <span className="hidden lg:block font-medium text-neutral-600 group-hover:text-neutral-900">
                     Cart
-                  </span>
-                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white shadow-sm">
-                    0
                   </span>
                 </LocalizedClientLink>
               }
@@ -184,24 +185,6 @@ export default async function Nav() {
             </Suspense>
           </div>
         </nav>
-
-        <div className="small:hidden border-t border-ui-border-base bg-transparent">
-          <div className="content-container py-2">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {[...primaryItems, ...commerceItems].map((item) => (
-                <ActiveLink
-                  key={item.name}
-                  href={item.href}
-                  className="shrink-0 h-9 px-4 inline-flex items-center rounded-full bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-field-hover transition-colors"
-                  activeClassName="!bg-neutral-900 !text-white"
-                  data-testid={`nav-mobile-${item.name.toLowerCase()}-link`}
-                >
-                  <span className="uppercase tracking-widest">{item.name}</span>
-                </ActiveLink>
-              ))}
-            </div>
-          </div>
-        </div>
       </header>
     </div>
   )

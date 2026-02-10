@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { Radio, RadioGroup } from "@headlessui/react"
 import { setShippingMethod } from "@lib/data/cart"
 import { calculatePriceForShippingOption } from "@lib/data/fulfillment"
@@ -369,7 +370,7 @@ const Shipping: React.FC<ShippingProps> = ({
               error={error}
               data-testid="delivery-option-error-message"
             />
-            {console.log("cart", JSON.stringify(cart.shipping_methods))}
+            {/* {console.log("cart", JSON.stringify(cart.shipping_methods))} */}
             <Button
               size="large"
               className="mt-8"

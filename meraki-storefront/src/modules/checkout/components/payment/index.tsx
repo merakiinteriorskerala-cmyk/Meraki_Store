@@ -1,7 +1,7 @@
 "use client"
 
 import { RadioGroup } from "@headlessui/react"
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { isRazorpay, isStripeLike, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
@@ -80,18 +80,40 @@ const Payment = ({
         activeSession?.provider_id === selectedPaymentMethod
 
       if (!checkActiveSession) {
-        await initiatePaymentSession(cart, {
+        const resp = await initiatePaymentSession(cart, {
           provider_id: selectedPaymentMethod,
+          ...(isRazorpay(selectedPaymentMethod)
+            ? {
+                data: {
+                  extra: cart,
+                },
+              }
+            : {}),
         })
+
+        if (isRazorpay(selectedPaymentMethod)) {
+          const paymentCollection = (resp as any)?.payment_collection
+          const createdSession = paymentCollection?.payment_sessions?.find(
+            (s: any) => s?.provider_id === selectedPaymentMethod
+          )
+
+          const createdOrderId =
+            (createdSession?.data as any)?.id ??
+            (createdSession?.data as any)?.order_id ??
+            ""
+
+          if (createdOrderId) {
+            sessionStorage.setItem(`rzp_order_id_${cart.id}`, createdOrderId)
+          }
+        }
       }
 
       if (!shouldInputCard) {
-        return router.push(
-          pathname + "?" + createQueryString("step", "review"),
-          {
-            scroll: false,
-          }
-        )
+        router.push(pathname + "?" + createQueryString("step", "review"), {
+          scroll: false,
+        })
+        router.refresh()
+        return
       }
     } catch (err: any) {
       setError(err.message)
@@ -110,7 +132,7 @@ const Payment = ({
         <Heading
           level="h2"
           className={clx(
-            "flex flex-row text-3xl-regular gap-x-2 items-baseline",
+            "flex flex-row text-2xl md:text-3xl font-sans font-bold text-neutral-900 gap-x-2 items-center",
             {
               "opacity-50 pointer-events-none select-none":
                 !isOpen && !paymentReady,
@@ -118,13 +140,13 @@ const Payment = ({
           )}
         >
           Payment
-          {!isOpen && paymentReady && <CheckCircleSolid />}
+          {!isOpen && paymentReady && <CheckCircleSolid className="text-green-500" />}
         </Heading>
         {!isOpen && paymentReady && (
           <Text>
             <button
               onClick={handleEdit}
-              className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
               data-testid="edit-payment-button"
             >
               Edit
@@ -141,7 +163,7 @@ const Payment = ({
                 onChange={(value: string) => setPaymentMethod(value)}
               >
                 {availablePaymentMethods.map((paymentMethod) => (
-                  <div key={paymentMethod.id}>
+                  <div key={paymentMethod.id} className="mb-4 last:mb-0">
                     {isStripeLike(paymentMethod.id) ? (
                       <StripeCardContainer
                         paymentProviderId={paymentMethod.id}
@@ -166,11 +188,11 @@ const Payment = ({
 
           {paidByGiftcard && (
             <div className="flex flex-col w-1/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
+              <Text className="font-medium text-neutral-900 mb-1">
                 Payment method
               </Text>
               <Text
-                className="txt-medium text-ui-fg-subtle"
+                className="text-sm text-neutral-500"
                 data-testid="payment-method-summary"
               >
                 Gift card
@@ -185,7 +207,7 @@ const Payment = ({
 
           <Button
             size="large"
-            className="mt-6"
+            className="mt-6 w-full md:w-auto rounded-full shadow-lg"
             onClick={handleSubmit}
             isLoading={isLoading}
             disabled={
@@ -202,13 +224,13 @@ const Payment = ({
 
         <div className={isOpen ? "hidden" : "block"}>
           {cart && paymentReady && activeSession ? (
-            <div className="flex items-start gap-x-1 w-full">
+            <div className="flex items-start gap-x-1 w-full text-sm">
               <div className="flex flex-col w-1/3">
-                <Text className="txt-medium-plus text-ui-fg-base mb-1">
+                <Text className="font-medium text-neutral-900 mb-1">
                   Payment method
                 </Text>
                 <Text
-                  className="txt-medium text-ui-fg-subtle"
+                  className="text-neutral-500"
                   data-testid="payment-method-summary"
                 >
                   {paymentInfoMap[activeSession?.provider_id]?.title ||
@@ -216,14 +238,14 @@ const Payment = ({
                 </Text>
               </div>
               <div className="flex flex-col w-1/3">
-                <Text className="txt-medium-plus text-ui-fg-base mb-1">
+                <Text className="font-medium text-neutral-900 mb-1">
                   Payment details
                 </Text>
                 <div
-                  className="flex gap-2 txt-medium text-ui-fg-subtle items-center"
+                  className="flex gap-2 text-neutral-500 items-center"
                   data-testid="payment-details-summary"
                 >
-                  <Container className="flex items-center h-7 w-fit p-2 bg-ui-button-neutral-hover">
+                  <Container className="flex items-center h-7 w-fit p-2 bg-neutral-100 rounded">
                     {paymentInfoMap[selectedPaymentMethod]?.icon || (
                       <CreditCard />
                     )}
@@ -237,12 +259,12 @@ const Payment = ({
               </div>
             </div>
           ) : paidByGiftcard ? (
-            <div className="flex flex-col w-1/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
+            <div className="flex flex-col w-1/3 text-sm">
+              <Text className="font-medium text-neutral-900 mb-1">
                 Payment method
               </Text>
               <Text
-                className="txt-medium text-ui-fg-subtle"
+                className="text-neutral-500"
                 data-testid="payment-method-summary"
               >
                 Gift card
@@ -251,7 +273,7 @@ const Payment = ({
           ) : null}
         </div>
       </div>
-      <Divider className="mt-8" />
+      <Divider className="mt-8 border-neutral-100" />
     </div>
   )
 }

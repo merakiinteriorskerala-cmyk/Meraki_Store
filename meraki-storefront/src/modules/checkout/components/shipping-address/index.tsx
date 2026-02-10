@@ -94,6 +94,17 @@ const ShippingAddress = ({
 
   return (
     <>
+      <div className="mb-6 flex items-center gap-3 px-5 py-4 bg-amber-50/60 border border-amber-200 rounded-lg shadow-sm">
+        <div className="p-1.5 bg-white rounded-full text-amber-600 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+            <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.72 .829.799 1.654 1.38 2.274 1.765a11.55 11.55 0 001.04.573l.018.009.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-neutral-700">
+          We currently deliver exclusively to <span className="text-amber-700 font-bold">Kerala, India</span>
+        </p>
+      </div>
+
       {customer && (addressesInRegion?.length || 0) > 0 && (
         <Container className="mb-6 flex flex-col gap-y-4 p-5">
           <p className="text-small-regular">

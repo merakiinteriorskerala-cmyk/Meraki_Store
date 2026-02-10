@@ -1,3 +1,5 @@
+"use client"
+
 import { deleteLineItem } from "@lib/data/cart"
 import { Spinner, Trash } from "@medusajs/icons"
 import { clx } from "@medusajs/ui"
@@ -7,11 +9,12 @@ const DeleteButton = ({
   id,
   children,
   className,
+  ...props
 }: {
   id: string
   children?: React.ReactNode
   className?: string
-}) => {
+} & React.HTMLAttributes<HTMLDivElement>) => {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async (id: string) => {
@@ -27,6 +30,7 @@ const DeleteButton = ({
         "flex items-center justify-between text-small-regular",
         className
       )}
+      {...props}
     >
       <button
         className="flex gap-x-1 text-ui-fg-subtle hover:text-ui-fg-base cursor-pointer"

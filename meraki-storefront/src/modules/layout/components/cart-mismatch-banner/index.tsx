@@ -22,9 +22,14 @@ function CartMismatchBanner(props: {
     try {
       setIsPending(true)
       setActionText("Transferring..")
-
-      await transferCart()
-    } catch {
+      console.log("Transferring cart")
+      const error = await transferCart()
+      if (error) {
+        console.error("Transfer failed:", error)
+        throw new Error(error)
+      }
+    } catch (err) {
+      console.error(err)
       setActionText("Run transfer again")
       setIsPending(false)
     }

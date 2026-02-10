@@ -14,6 +14,7 @@ type PaginatedProductsParams = {
   category_id?: string[]
   id?: string[]
   order?: string
+  fields?: string
 }
 
 export default async function PaginatedProducts({
@@ -33,6 +34,8 @@ export default async function PaginatedProducts({
 }) {
   const queryParams: PaginatedProductsParams = {
     limit: 12,
+    fields:
+      "id,title,handle,thumbnail,images.url,variants.id,variants.calculated_price,variants.original_price",
   }
 
   if (collectionId) {
@@ -71,7 +74,7 @@ export default async function PaginatedProducts({
   return (
     <>
       <ul
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 w-full"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12 w-full"
         data-testid="products-list"
       >
         {products.map((p, index) => {
@@ -83,11 +86,13 @@ export default async function PaginatedProducts({
         })}
       </ul>
       {totalPages > 1 && (
-        <Pagination
-          data-testid="product-pagination"
-          page={page}
-          totalPages={totalPages}
-        />
+        <div className="mt-16 border-t border-neutral-100 pt-8">
+          <Pagination
+            data-testid="product-pagination"
+            page={page}
+            totalPages={totalPages}
+          />
+        </div>
       )}
     </>
   )
