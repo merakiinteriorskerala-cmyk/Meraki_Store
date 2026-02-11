@@ -20,9 +20,13 @@ COPY . .
 # Build the application
 RUN yarn build
 
-# Debug: show what's in the admin build directory
-RUN echo "=== .medusa/server/public contents ===" && \
-    find .medusa/server/public -type f 2>/dev/null | head -20 || echo "No public directory found"
+# Check if admin index.html was generated
+RUN echo "=== Checking for admin index.html ===" && \
+    ls -la .medusa/server/public/admin/index.html 2>/dev/null || \
+    (echo "index.html NOT found - listing all HTML files:" && \
+     find .medusa/server/public -name "*.html" -type f 2>/dev/null && \
+     echo "=== Full public/admin/ root listing ===" && \
+     ls -la .medusa/server/public/admin/ 2>/dev/null)
 
 # Expose port 9000
 EXPOSE 9000
