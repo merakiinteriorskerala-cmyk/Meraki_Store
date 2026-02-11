@@ -23,5 +23,7 @@ RUN yarn build
 # Expose port 9000
 EXPOSE 9000
 
-# Use shell form so we get proper error output
-CMD sh -c "echo '=== Running migrations ===' && yarn medusa db:migrate && echo '=== Starting server ===' && node .medusa/server/index.js 2>&1 || (echo '=== SERVER CRASHED WITH EXIT CODE $? ===' && exit 1)"
+# List build output for debugging, then start
+RUN ls -la .medusa/server/ || echo "No .medusa/server directory found"
+
+CMD sh -c "yarn medusa db:migrate && echo '=== Starting server ===' && npx medusa start 2>&1"
