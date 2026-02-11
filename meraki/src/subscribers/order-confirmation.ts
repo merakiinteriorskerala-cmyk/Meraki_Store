@@ -39,9 +39,6 @@ export default async function orderConfirmationHandler({
       filters: {
         id: orderId,
       },
-      options: {
-        throwIfKeyNotFound: false,
-      },
     }
   )
 
