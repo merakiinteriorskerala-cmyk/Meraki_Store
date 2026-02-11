@@ -20,10 +20,11 @@ COPY . .
 # Build the application
 RUN yarn build
 
+# Debug: show what's in the admin build directory
+RUN echo "=== .medusa/server/public contents ===" && \
+    find .medusa/server/public -type f 2>/dev/null | head -20 || echo "No public directory found"
+
 # Expose port 9000
 EXPOSE 9000
 
-# List build output for debugging, then start
-RUN ls -la .medusa/server/ || echo "No .medusa/server directory found"
-
-CMD sh -c "yarn medusa db:migrate && echo '=== Starting server ===' && npx medusa start 2>&1"
+CMD sh -c "yarn medusa db:migrate && npx medusa start 2>&1"

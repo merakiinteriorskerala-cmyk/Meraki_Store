@@ -15,6 +15,9 @@ const notificationProviders = [
 ]
 
 module.exports = defineConfig({
+  admin: {
+    disable: process.env.DISABLE_ADMIN === "true",
+  },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
