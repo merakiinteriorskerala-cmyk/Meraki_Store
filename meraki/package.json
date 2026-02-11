@@ -29,6 +29,7 @@
     "@sgftech/payment-razorpay": "https://github.com/Vinu-1975/payment-razorpay.git#master",
     "pdfkit": "^0.17.2",
     "pdfmake": "^0.3.2",
+    "axios": "^1.7.0",
     "resend": "^6.8.0"
   },
   "devDependencies": {
